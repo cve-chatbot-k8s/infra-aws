@@ -45,15 +45,22 @@ resource "aws_security_group" "eks_sg" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  // Allow inbound traffic from S3
-  ingress {
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["52.216.0.0/15"]
-  }
-
   tags = {
     Name = "eks_sg"
   }
+}
+
+output "vpc_id" {
+  description = "The ID of the VPC"
+  value       = module.vpc.vpc_id
+}
+
+output "vpc_private_subnets" {
+  description = "List of IDs of private subnets"
+  value       = module.vpc.private_subnets
+}
+
+output "vpc_public_subnets" {
+  description = "List of IDs of public subnets"
+  value       = module.vpc.public_subnets
 }
