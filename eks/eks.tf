@@ -28,9 +28,9 @@ module "eks" {
     eks-pod-identity-agent = {
       most_recent = true
     }
-#     aws-ebs-csi-driver = {
-#       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-#     }
+    aws-ebs-csi-driver = {
+      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+    }
   }
 
   enable_irsa = true
@@ -63,7 +63,6 @@ module "eks" {
       update_config = {
         max_unavailable = 1
       }
-
       tags = {
         Name   = "webapp-nodes"
       }
@@ -132,33 +131,33 @@ module "irsa-ebs-csi" {
 
 # Reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_addon
 # Resource: EBS CSI Driver AddOn EKS Add-Ons (aws_eks_addon)
-resource "aws_eks_addon" "eks_cluster_ebs_csi_addon" {
-  cluster_name             = module.eks.cluster_name
-  addon_name               = "aws-ebs-csi-driver"
-  addon_version            = "v1.25.0-eksbuild.1"
-  service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-  depends_on = [
-    module.irsa-ebs-csi
-  ]
-  tags = {
-    tag-key = "ebs-csi-addon"
-  }
-}
+# resource "aws_eks_addon" "eks_cluster_ebs_csi_addon" {
+#   cluster_name             = module.eks.cluster_name
+#   addon_name               = "aws-ebs-csi-driver"
+#   # addon_version            = "v1.25.0-eksbuild.1"
+#   service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+#   depends_on = [
+#     module.irsa-ebs-csi
+#   ]
+#   tags = {
+#     tag-key = "ebs-csi-addon"
+#   }
+# }
 ############################################################################################################
 # EKS Add-On - EBS CSI Driver
 ############################################################################################################
-output "eks_cluster_ebs_addon_arn" {
-  description = "Amazon Resource Name (ARN) of the EKS add-on"
-  value       = aws_eks_addon.eks_cluster_ebs_csi_addon.arn
-}
-output "eks_cluster_ebs_addon_id" {
-  description = "EKS Cluster name and EKS Addon name"
-  value       = aws_eks_addon.eks_cluster_ebs_csi_addon.id
-}
-output "eks_cluster_ebs_addon_time" {
-  description = "Date and time in RFC3339 format that the EKS add-on was created"
-  value       = aws_eks_addon.eks_cluster_ebs_csi_addon.created_at
-}
+# output "eks_cluster_ebs_addon_arn" {
+#   description = "Amazon Resource Name (ARN) of the EKS add-on"
+#   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.arn
+# }
+# output "eks_cluster_ebs_addon_id" {
+#   description = "EKS Cluster name and EKS Addon name"
+#   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.id
+# }
+# output "eks_cluster_ebs_addon_time" {
+#   description = "Date and time in RFC3339 format that the EKS add-on was created"
+#   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.created_at
+# }
 
 ############################################################################################################
 # EKS Add-On - EBS CSI Driver
@@ -189,7 +188,6 @@ provider "kubernetes" {
   config_context = "arn:aws:eks:us-east-1:905418442014:cluster/cve-eks-cluster"
 }
 
-
 resource "kubernetes_storage_class" "ebs_csi_encrypted" {
   metadata {
     name = "ebs-csi-encrypted"
@@ -204,9 +202,20 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
   reclaim_policy = "Retain"
   volume_binding_mode = "Immediate"
   storage_provisioner = "ebs.csi.aws.com"
+
+  depends_on = [
+    # aws_eks_addon.eks_cluster_ebs_csi_addon,
+    var.eks_create_storageclass_attachment_arn,
+    var.eks_create_storageclass_policy_arn,
+    var.eks_cluster_role_arn
+  ]
 }
 
 variable "eks_cluster_id" {}
 variable "eks_cluster_name" {}
 variable "region" {}
 variable "irsa_role_arn" {}
+
+variable "eks_create_storageclass_attachment_arn" {}
+variable "eks_create_storageclass_policy_arn" {}
+variable "eks_cluster_role_arn" {}
