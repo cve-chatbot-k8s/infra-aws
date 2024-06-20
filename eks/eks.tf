@@ -28,9 +28,9 @@ module "eks" {
     eks-pod-identity-agent = {
       most_recent = true
     }
-    aws-ebs-csi-driver = {
-      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-    }
+#     aws-ebs-csi-driver = {
+#       service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+#     }
   }
 
   enable_irsa = true
@@ -69,6 +69,8 @@ module "eks" {
       }
     }
   }
+
+  enable_cluster_creator_admin_permissions = true
 
   # Cluster access entry
   # To add the current caller identity as an administrator
@@ -157,3 +159,54 @@ output "eks_cluster_ebs_addon_time" {
   description = "Date and time in RFC3339 format that the EKS add-on was created"
   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.created_at
 }
+
+############################################################################################################
+# EKS Add-On - EBS CSI Driver
+############################################################################################################
+output "cluster_certificate_authority_data" {
+  description = "The base64 encoded certificate data required to communicate with your cluster."
+  value       = module.eks.cluster_certificate_authority_data
+}
+
+output "cluster_endpoint" {
+  description = "The endpoint for your Kubernetes API server."
+  value       = module.eks.cluster_endpoint
+}
+
+# data "aws_eks_cluster" "cluster" {
+#   name = module.eks.cluster_name
+# }
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = module.eks.cluster_endpoint
+  cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+  token                  = data.aws_eks_cluster_auth.cluster.token
+  config_path    = "~/.kube/config"
+  config_context = "arn:aws:eks:us-east-1:905418442014:cluster/cve-eks-cluster"
+}
+
+
+resource "kubernetes_storage_class" "ebs_csi_encrypted" {
+  metadata {
+    name = "ebs-csi-encrypted"
+  }
+
+  parameters = {
+    type        = "gp2"
+    encrypted   = "true"
+    kmsKeyId    = var.eks_ebs_encryption_key_arn
+  }
+
+  reclaim_policy = "Retain"
+  volume_binding_mode = "Immediate"
+  storage_provisioner = "ebs.csi.aws.com"
+}
+
+variable "eks_cluster_id" {}
+variable "eks_cluster_name" {}
+variable "region" {}
+variable "irsa_role_arn" {}

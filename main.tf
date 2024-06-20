@@ -24,4 +24,8 @@ module "eks" {
   public_subnets = module.vpc.vpc_public_subnets
   eks_ebs_encryption_key_arn = module.iam.eks_ebs_encryption_key_arn
   eks_secrets_encryption_key_arn = module.iam.eks_secrets_encryption_key_arn
+  eks_cluster_id = ""
+  eks_cluster_name = ""
+  irsa_role_arn = ""
+  region = ""
 }
