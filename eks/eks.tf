@@ -4,14 +4,12 @@ module "eks" {
   version = "~> 20.0"
 
   authentication_mode = "API_AND_CONFIG_MAP"
-  cluster_name    = "cve-eks-cluster"
+  cluster_name    = var.eks_cluster_name
   cluster_version = "1.29"
 
-  // default value is false
   cluster_endpoint_public_access  = true
   cluster_endpoint_private_access  = true
 
-  // default value is ipv4
   cluster_ip_family = "ipv4"
 
   cluster_enabled_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
@@ -29,7 +27,7 @@ module "eks" {
       most_recent = true
     }
     aws-ebs-csi-driver = {
-      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
+      service_account_role_arn = var.irsa_role_arn
     }
   }
 
@@ -41,27 +39,24 @@ module "eks" {
   }
 
   vpc_id = var.vpc_id
-  // private subnets
   subnet_ids               = var.private_subnets
-  // public subnets
   control_plane_subnet_ids = var.public_subnets
 
-  # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
     instance_types = ["c3.large"]
   }
 
   eks_managed_node_groups = {
     webapp = {
-      ami_type        = "AL2_x86_64"
-      capacity_type   = "ON_DEMAND"
-      instance_types  = ["c3.large"]
-      desired_size    = 2  // Change this later according to requirements
-      min_size        = 1
-      max_size        = 2
+      ami_type        = var.ami_type
+      capacity_type   = var.capacity_type
+      instance_types  = var.instance_types
+      desired_size    = var.desired_size
+      min_size        = var.min_size
+      max_size        = var.max_size
 
       update_config = {
-        max_unavailable = 1
+        max_unavailable = var.max_unavailable
       }
       tags = {
         Name   = "webapp-nodes"
@@ -71,48 +66,17 @@ module "eks" {
 
   enable_cluster_creator_admin_permissions = true
 
-  # Cluster access entry
-  # To add the current caller identity as an administrator
-#   enable_cluster_creator_admin_permissions = true
-
-#   access_entries = {
-#     example = {
-#       kubernetes_groups = []
-#       principal_arn     = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/existing-role"
-#
-#       policy_associations = {
-#         example = {
-#           policy_arn = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSViewPolicy"
-#           access_scope = {
-#             namespaces = ["default"]
-#             type       = "namespace"
-#           }
-#         }
-#       }
-#     }
-#   }
-
   tags = {
     Environment = "dev"
     Terraform   = "true"
   }
 }
 
-variable "vpc_id" {}
-variable "private_subnets" {}
-variable "public_subnets" {}
-variable "eks_ebs_encryption_key_arn" {}
-variable "eks_secrets_encryption_key_arn" {}
-
-# Defined in iam/kms.tf
-# data "aws_kms_key" "eks_secrets_encryption" {
-#   key_id = "alias/eks-secrets-encryption"
-# }
-# #
-# # // Defined in iam/kms.tf
-# data "aws_kms_key" "eks_ebs_encryption" {
-#   key_id = "alias/eks-ebs-encryption"
-# }
+# variable "vpc_id" {}
+# variable "private_subnets" {}
+# variable "public_subnets" {}
+# variable "eks_ebs_encryption_key_arn" {}
+# variable "eks_secrets_encryption_key_arn" {}
 
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
@@ -185,7 +149,7 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   token                  = data.aws_eks_cluster_auth.cluster.token
   config_path    = "~/.kube/config"
-  config_context = "arn:aws:eks:us-east-1:905418442014:cluster/cve-eks-cluster"
+  config_context = "arn:aws:eks:${var.region}:${var.eks_cluster_id}:cluster/${var.eks_cluster_name}"
 }
 
 resource "kubernetes_storage_class" "ebs_csi_encrypted" {
@@ -199,23 +163,14 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
     kmsKeyId    = var.eks_ebs_encryption_key_arn
   }
 
-  reclaim_policy = "Retain"
-  volume_binding_mode = "Immediate"
+  reclaim_policy = var.reclaim_policy
+  volume_binding_mode = var.volume_binding_mode
   storage_provisioner = "ebs.csi.aws.com"
 
   depends_on = [
-    # aws_eks_addon.eks_cluster_ebs_csi_addon,
     var.eks_create_storageclass_attachment_arn,
     var.eks_create_storageclass_policy_arn,
     var.eks_cluster_role_arn
   ]
 }
 
-variable "eks_cluster_id" {}
-variable "eks_cluster_name" {}
-variable "region" {}
-variable "irsa_role_arn" {}
-
-variable "eks_create_storageclass_attachment_arn" {}
-variable "eks_create_storageclass_policy_arn" {}
-variable "eks_cluster_role_arn" {}
