@@ -58,3 +58,23 @@ value = aws_iam_role.eks_cluster_role.arn
 output "ebs_csi_driver_role_arn" {
 value = aws_iam_role.ebs_csi_driver_role.arn
 }
+
+data "aws_iam_policy_document" "eks_create_storageclass" {
+  statement {
+    actions = [
+      "eks:CreateStorageClass"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "eks_create_storageclass" {
+  name        = "eksCreateStorageClass"
+  description = "Allows creation of storageclasses in EKS"
+  policy      = data.aws_iam_policy_document.eks_create_storageclass.json
+}
+
+resource "aws_iam_role_policy_attachment" "eks_create_storageclass" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = aws_iam_policy.eks_create_storageclass.arn
+}
