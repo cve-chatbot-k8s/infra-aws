@@ -4,9 +4,13 @@ terraform {
       source  = "hashicorp/aws"
       version = "5.54.1"
     }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 1.11.0"
+    }
   }
 
-  required_version = ">= 1.2.0"
+  required_version = ">= 0.12"
 }
 
 module "vpc" {
@@ -28,4 +32,7 @@ module "eks" {
   eks_cluster_name = ""
   irsa_role_arn = ""
   region = ""
+  eks_create_storageclass_attachment_arn = module.iam.eks_create_storageclass_attachment
+  eks_create_storageclass_policy_arn = module.iam.eks_create_storageclass_policy
+  eks_cluster_role_arn = module.iam.eks_cluster_role_arn
 }
