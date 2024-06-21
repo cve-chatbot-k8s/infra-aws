@@ -18,7 +18,7 @@ module "vpc" {
 }
 
 module "iam" {
-  source = "./iam"
+  source                = "./iam"
   worker_iam_role_names = module.eks.worker_iam_role_names
 }
 
