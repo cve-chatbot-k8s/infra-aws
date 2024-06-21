@@ -4,7 +4,7 @@ pipeline {
         GH_TOKEN = credentials('github-credentials')
     }
     tools {
-        terraform 'Terraform' // Referencing the tool name configured in JCasC
+        terraform 'Terraform'
     }
     stages {
         stage('Checkout Repository') {

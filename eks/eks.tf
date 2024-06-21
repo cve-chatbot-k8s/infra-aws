@@ -27,7 +27,7 @@ module "eks" {
       most_recent = true
     }
     aws-ebs-csi-driver = {
-      service_account_role_arn = var.irsa_role_arn
+      service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
     }
   }
 
@@ -58,6 +58,8 @@ module "eks" {
       update_config = {
         max_unavailable = var.max_unavailable
       }
+
+      additional_policies = var.worker_node_ebs_policy_arn
       tags = {
         Name   = "webapp-nodes"
       }
@@ -72,11 +74,10 @@ module "eks" {
   }
 }
 
-# variable "vpc_id" {}
-# variable "private_subnets" {}
-# variable "public_subnets" {}
-# variable "eks_ebs_encryption_key_arn" {}
-# variable "eks_secrets_encryption_key_arn" {}
+output "worker_iam_role_names" {
+  description = "List of IAM role names for the EKS worker nodes"
+  value       = [for ng in keys(module.eks.eks_managed_node_groups) : module.eks.eks_managed_node_groups[ng].iam_role_name]
+}
 
 data "aws_iam_policy" "ebs_csi_policy" {
   arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
@@ -93,35 +94,51 @@ module "irsa-ebs-csi" {
   oidc_fully_qualified_subjects = ["system:serviceaccount:kube-system:ebs-csi-controller-sa"]
 }
 
-# Reference: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_addon
-# Resource: EBS CSI Driver AddOn EKS Add-Ons (aws_eks_addon)
-# resource "aws_eks_addon" "eks_cluster_ebs_csi_addon" {
-#   cluster_name             = module.eks.cluster_name
-#   addon_name               = "aws-ebs-csi-driver"
-#   # addon_version            = "v1.25.0-eksbuild.1"
-#   service_account_role_arn = module.irsa-ebs-csi.iam_role_arn
-#   depends_on = [
-#     module.irsa-ebs-csi
-#   ]
-#   tags = {
-#     tag-key = "ebs-csi-addon"
-#   }
-# }
-############################################################################################################
-# EKS Add-On - EBS CSI Driver
-############################################################################################################
-# output "eks_cluster_ebs_addon_arn" {
-#   description = "Amazon Resource Name (ARN) of the EKS add-on"
-#   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.arn
-# }
-# output "eks_cluster_ebs_addon_id" {
-#   description = "EKS Cluster name and EKS Addon name"
-#   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.id
-# }
-# output "eks_cluster_ebs_addon_time" {
-#   description = "Date and time in RFC3339 format that the EKS add-on was created"
-#   value       = aws_eks_addon.eks_cluster_ebs_csi_addon.created_at
-# }
+output "irsa_output" {
+value = module.irsa-ebs-csi.iam_role_arn
+}
+
+resource "aws_iam_policy" "custom_policy" {
+  name        = "custom_policy"
+  description = "Custom policy for IRSA"
+  policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:CreateGrant",
+        "kms:ListGrants",
+        "kms:RevokeGrant"
+      ],
+      "Resource": ["arn:aws:kms:us-east-1:905418442014:key/6944060a-2038-4c79-a561-29ddc8965034"],
+      "Condition": {
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Resource": ["arn:aws:kms:us-east-1:905418442014:key/6944060a-2038-4c79-a561-29ddc8965034"]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy_attachment" "custom_policy_attachment" {
+  role       = module.irsa-ebs-csi.iam_role_name
+  policy_arn = aws_iam_policy.custom_policy.arn
+}
 
 ############################################################################################################
 # EKS Add-On - EBS CSI Driver
@@ -158,7 +175,7 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
   }
 
   parameters = {
-    type        = "gp2"
+    type        = "gp3"
     encrypted   = "true"
     kmsKeyId    = var.eks_ebs_encryption_key_arn
   }
@@ -173,4 +190,3 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
     var.eks_cluster_role_arn
   ]
 }
-

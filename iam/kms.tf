@@ -74,16 +74,6 @@ resource "aws_kms_key" "eks_ebs_encryption" {
 POLICY
 }
 
-# resource "aws_kms_alias" "eks_secrets_encryption_alias" {
-#   name          = "alias/eks-secrets-encryption"
-#   target_key_id = aws_kms_key.eks_secrets_encryption.id
-# }
-#
-# resource "aws_kms_alias" "eks_ebs_encryption_alias" {
-#   name          = "alias/eks-ebs-encryption"
-#   target_key_id = aws_kms_key.eks_ebs_encryption.id
-# }
-
 output "eks_secrets_encryption_key_arn" {
   description = "The ARN of the KMS key for EKS secrets encryption"
   value       = aws_kms_key.eks_secrets_encryption.id
