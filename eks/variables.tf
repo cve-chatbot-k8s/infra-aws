@@ -21,14 +21,17 @@ variable "eks_secrets_encryption_key_arn" {
 }
 
 variable "eks_cluster_id" {
+  default = "905418442014"
   description = "The ID of the EKS cluster"
 }
 
 variable "eks_cluster_name" {
+  default = "cve-eks-cluster"
   description = "The name of the EKS cluster"
 }
 
 variable "region" {
+  default = "us-east-1"
   description = "The AWS region where the EKS cluster will be created"
 }
 
@@ -92,4 +95,9 @@ variable "reclaim_policy" {
 variable "volume_binding_mode" {
   description = "The volume binding mode for the storage class in the EKS cluster"
   default     = "Immediate"
+}
+
+
+variable "worker_node_ebs_policy_arn" {
+  description = "ebs policy arn"
 }
