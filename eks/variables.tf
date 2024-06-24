@@ -35,9 +35,9 @@ variable "region" {
   description = "The AWS region where the EKS cluster will be created"
 }
 
-variable "irsa_role_arn" {
-  description = "The ARN of the IAM role for service accounts (IRSA)"
-}
+# variable "irsa_role_arn" {
+#   description = "The ARN of the IAM role for service accounts (IRSA)"
+# }
 
 variable "eks_create_storageclass_attachment_arn" {
   description = "The ARN of the IAM role policy attachment for EKS storage class creation"

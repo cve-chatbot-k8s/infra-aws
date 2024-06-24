@@ -1,21 +1,16 @@
+#try removing this policy and see if it works
 data "aws_iam_policy_document" "eks_create_storageclass" {
   statement {
     actions = [
-      "eks:CreateStorageClass",
-      "kms:CreateGrant",
-      "ec2:DescribeInstances",
-      "ec2:DescribeInstanceTypes",
-      "ec2:DescribeRouteTables",
-      "ec2:DescribeSecurityGroups",
-      "ec2:DescribeSubnets",
-      "ec2:DescribeVolumes",
-      "ec2:DescribeVolumesModifications",
-      "ec2:DescribeVpcs",
-      "eks:DescribeCluster",
-      "eks-auth:AssumeRoleForPodIdentity",
       "ec2:CreateVolume",
       "ec2:DeleteVolume",
-      "ec2:AttachVolume"
+      "ec2:AttachVolume",
+      "ec2:DetachVolume",
+      "ec2:DescribeVolumes",
+      "ec2:DescribeVolumeStatus",
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:RevokeGrant"
     ]
     resources = ["*"]
   }
@@ -28,7 +23,8 @@ resource "aws_iam_policy" "eks_create_storageclass" {
 }
 
 resource "aws_iam_role_policy_attachment" "eks_create_storageclass" {
-  role       = aws_iam_role.eks_cluster_role.name
+  # role       = aws_iam_role.eks_cluster_role.name
+  role       = aws_iam_role.eks_node_role.name
   policy_arn = aws_iam_policy.eks_create_storageclass.arn
 }
 
@@ -61,6 +57,21 @@ policy_arn = "arn:aws:iam::aws:policy/AmazonEKSServicePolicy"
 role       = aws_iam_role.eks_cluster_role.name
 }
 
+resource "aws_iam_role" "eks_node_role" {
+  name = "eks-node-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [{
+      Action = "sts:AssumeRole",
+      Effect = "Allow",
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
+
 data "aws_iam_policy_document" "worker_node_ebs_policy" {
   statement {
     actions = [
@@ -88,72 +99,56 @@ resource "aws_iam_policy" "worker_node_ebs_policy" {
   policy      = data.aws_iam_policy_document.worker_node_ebs_policy.json
 }
 
-resource "aws_iam_role_policy_attachment" "worker_node_ebs_policy_attachment" {
-  for_each = toset(var.worker_iam_role_names)
 
-  role       = each.value
+resource "aws_iam_role_policy_attachment" "worker_node_ebs_policy_attachment" {
+  role       = aws_iam_role.eks_node_role.name
   policy_arn = aws_iam_policy.worker_node_ebs_policy.arn
 }
 
-data "aws_iam_policy_document" "ebs_csi_driver_assume_role_policy" {
-  statement {
-    actions = ["sts:AssumeRole"]
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com", "eks.amazonaws.com"]
+resource "aws_iam_policy" "custom_policy" {
+  name        = "custom_policy"
+  description = "Custom policy for IRSA"
+  policy      = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:CreateGrant",
+        "kms:ListGrants",
+        "kms:RevokeGrant"
+      ],
+      "Resource": ["arn:aws:kms:us-east-1:905418442014:key/6944060a-2038-4c79-a561-29ddc8965034"],
+      "Condition": {
+        "Bool": {
+          "kms:GrantIsForAWSResource": "true"
+        }
+      }
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "kms:Encrypt",
+        "kms:Decrypt",
+        "kms:ReEncrypt*",
+        "kms:GenerateDataKey*",
+        "kms:DescribeKey"
+      ],
+      "Resource": ["arn:aws:kms:us-east-1:905418442014:key/6944060a-2038-4c79-a561-29ddc8965034"]
     }
-  }
+  ]
+}
+EOF
 }
 
-resource "aws_iam_role" "ebs_csi_driver_role" {
-  name               = "ebs-csi-driver-role"
-  assume_role_policy = data.aws_iam_policy_document.ebs_csi_driver_assume_role_policy.json
+resource "aws_iam_role_policy_attachment" "custom_policy_attachment" {
+  role       = var.irsa_output
+  policy_arn = aws_iam_policy.custom_policy.arn
 }
-
-data "aws_iam_policy_document" "ebs_csi_driver_policy_document" {
-  statement {
-    actions = [
-      "ec2:CreateVolume",
-      "ec2:AttachVolume",
-      "ec2:DeleteVolume",
-      "ec2:DescribeVolumes",
-      "ec2:DescribeInstances",
-      "ec2:DescribeTags",
-      "ec2:ModifyVolume",
-      "ec2:DescribeAvailabilityZones",
-      "ec2:DescribeVolumeAttribute",
-      "ec2:DescribeVolumeStatus",
-      "ec2:DescribeSnapshots",
-      "ec2:CreateTags",
-      "ec2:DeleteTags",
-      "kms:CreateGrant",
-      "cloudwatch:PutMetricData",
-      "logs:CreateLogGroup",
-      "logs:CreateLogStream",
-      "logs:PutLogEvents"
-    ]
-    resources = ["*"]
-  }
-}
-
-resource "aws_iam_policy" "ebs_csi_driver_policy" {
-  name        = "ebsCSIDriverPolicy"
-  description = "Policy for EBS CSI Driver"
-  policy      = data.aws_iam_policy_document.ebs_csi_driver_policy_document.json
-}
-
-resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy_attachment" {
-  role       = aws_iam_role.ebs_csi_driver_role.name
-  policy_arn = aws_iam_policy.ebs_csi_driver_policy.arn
-}
-
 
 output "eks_cluster_role_arn" {
   value = aws_iam_role.eks_cluster_role.arn
-}
-
-output "ebs_csi_driver_role_arn" {
-  value = aws_iam_role.ebs_csi_driver_role.arn
 }
 
 output "eks_create_storageclass_attachment" {

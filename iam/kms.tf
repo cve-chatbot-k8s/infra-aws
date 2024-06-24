@@ -54,21 +54,21 @@ resource "aws_kms_key" "eks_ebs_encryption" {
       "Resource": "*"
     },
     {
-      "Sid": "Allow EBS CSI Driver to use the key",
-      "Effect": "Allow",
-      "Principal": {
-        "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/ebs-csi-driver-role"
-      },
-      "Action": [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:ReEncrypt*",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey",
-        "kms:CreateGrant"
-      ],
-      "Resource": "*"
-    }
+        "Sid": "Allow EBS CSI Driver to use the key",
+        "Effect": "Allow",
+        "Principal": {
+          "AWS": "${data.aws_caller_identity.current.account_id}:role/AmazonEKSTFEBSCSIRole-cve-eks-cluster"
+        },
+        "Action": [
+          "kms:Encrypt",
+          "kms:Decrypt",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:DescribeKey",
+          "kms:CreateGrant"
+        ],
+        "Resource": "*"
+      }
   ]
 }
 POLICY

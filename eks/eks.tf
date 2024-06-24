@@ -59,7 +59,6 @@ module "eks" {
         max_unavailable = var.max_unavailable
       }
 
-      additional_policies = var.worker_node_ebs_policy_arn
       tags = {
         Name   = "webapp-nodes"
       }
@@ -72,11 +71,6 @@ module "eks" {
     Environment = "dev"
     Terraform   = "true"
   }
-}
-
-output "worker_iam_role_names" {
-  description = "List of IAM role names for the EKS worker nodes"
-  value       = [for ng in keys(module.eks.eks_managed_node_groups) : module.eks.eks_managed_node_groups[ng].iam_role_name]
 }
 
 data "aws_iam_policy" "ebs_csi_policy" {
@@ -95,54 +89,13 @@ module "irsa-ebs-csi" {
 }
 
 output "irsa_output" {
-value = module.irsa-ebs-csi.iam_role_arn
+  value = module.irsa-ebs-csi.iam_role_name
 }
 
-resource "aws_iam_policy" "custom_policy" {
-  name        = "custom_policy"
-  description = "Custom policy for IRSA"
-  policy      = <<EOF
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:CreateGrant",
-        "kms:ListGrants",
-        "kms:RevokeGrant"
-      ],
-      "Resource": ["arn:aws:kms:us-east-1:905418442014:key/6944060a-2038-4c79-a561-29ddc8965034"],
-      "Condition": {
-        "Bool": {
-          "kms:GrantIsForAWSResource": "true"
-        }
-      }
-    },
-    {
-      "Effect": "Allow",
-      "Action": [
-        "kms:Encrypt",
-        "kms:Decrypt",
-        "kms:ReEncrypt*",
-        "kms:GenerateDataKey*",
-        "kms:DescribeKey"
-      ],
-      "Resource": ["arn:aws:kms:us-east-1:905418442014:key/6944060a-2038-4c79-a561-29ddc8965034"]
-    }
-  ]
-}
-EOF
+output "irsa_role_arn" {
+  value = module.irsa-ebs-csi.iam_role_arn
 }
 
-resource "aws_iam_role_policy_attachment" "custom_policy_attachment" {
-  role       = module.irsa-ebs-csi.iam_role_name
-  policy_arn = aws_iam_policy.custom_policy.arn
-}
-
-############################################################################################################
-# EKS Add-On - EBS CSI Driver
-############################################################################################################
 output "cluster_certificate_authority_data" {
   description = "The base64 encoded certificate data required to communicate with your cluster."
   value       = module.eks.cluster_certificate_authority_data
@@ -153,10 +106,6 @@ output "cluster_endpoint" {
   value       = module.eks.cluster_endpoint
 }
 
-# data "aws_eks_cluster" "cluster" {
-#   name = module.eks.cluster_name
-# }
-
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
 }
@@ -165,8 +114,6 @@ provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
   cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
   token                  = data.aws_eks_cluster_auth.cluster.token
-  config_path    = "~/.kube/config"
-  config_context = "arn:aws:eks:${var.region}:${var.eks_cluster_id}:cluster/${var.eks_cluster_name}"
 }
 
 resource "kubernetes_storage_class" "ebs_csi_encrypted" {

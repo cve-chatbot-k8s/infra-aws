@@ -1,4 +1,9 @@
-variable "worker_iam_role_names" {
-  description = "List of IAM role names for the EKS worker nodes"
-  type        = list(string)
+variable "irsa_output" {
+  description = "irsa service accont role name"
+  type        = string
+}
+
+variable "irsa_role_arn" {
+  description = "irsa service accont role arn"
+  type        = string
 }

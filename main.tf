@@ -19,7 +19,9 @@ module "vpc" {
 
 module "iam" {
   source                = "./iam"
-  worker_iam_role_names = module.eks.worker_iam_role_names
+  # worker_iam_role_names = module.eks.worker_iam_role_names
+  irsa_output           = module.eks.irsa_output
+  irsa_role_arn         = module.eks.irsa_role_arn
 }
 
 module "eks" {
@@ -29,7 +31,6 @@ module "eks" {
   public_subnets                         = module.vpc.vpc_public_subnets
   eks_ebs_encryption_key_arn             = module.iam.eks_ebs_encryption_key_arn
   eks_secrets_encryption_key_arn         = module.iam.eks_secrets_encryption_key_arn
-  irsa_role_arn                          = ""
   region                                 = "us-east-1"
   eks_create_storageclass_attachment_arn = module.iam.eks_create_storageclass_attachment
   eks_create_storageclass_policy_arn     = module.iam.eks_create_storageclass_policy
