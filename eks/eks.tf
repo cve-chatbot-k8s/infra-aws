@@ -43,7 +43,7 @@ module "eks" {
   control_plane_subnet_ids = var.public_subnets
 
   eks_managed_node_group_defaults = {
-    instance_types = ["c3.large"]
+    instance_types = var.instance_types
   }
 
   eks_managed_node_groups = {
@@ -132,8 +132,8 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
   storage_provisioner = "ebs.csi.aws.com"
 
   depends_on = [
-    var.eks_create_storageclass_attachment_arn,
-    var.eks_create_storageclass_policy_arn,
+    # var.eks_create_storageclass_attachment_arn,
+    # var.eks_create_storageclass_policy_arn,
     var.eks_cluster_role_arn
   ]
 }

@@ -54,10 +54,10 @@ resource "aws_kms_key" "eks_ebs_encryption" {
       "Resource": "*"
     },
     {
-        "Sid": "Allow EBS CSI Driver to use the key",
+        "Sid": "Allow EBS to use the key",
         "Effect": "Allow",
         "Principal": {
-          "AWS": "${data.aws_caller_identity.current.account_id}:role/AmazonEKSTFEBSCSIRole-cve-eks-cluster"
+          "AWS": "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/AmazonEKSTFEBSCSIRole-cve-eks-cluster"
         },
         "Action": [
           "kms:Encrypt",
@@ -72,6 +72,7 @@ resource "aws_kms_key" "eks_ebs_encryption" {
   ]
 }
 POLICY
+  depends_on = [var.irsa_output]
 }
 
 output "eks_secrets_encryption_key_arn" {

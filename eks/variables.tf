@@ -39,13 +39,13 @@ variable "region" {
 #   description = "The ARN of the IAM role for service accounts (IRSA)"
 # }
 
-variable "eks_create_storageclass_attachment_arn" {
-  description = "The ARN of the IAM role policy attachment for EKS storage class creation"
-}
+# variable "eks_create_storageclass_attachment_arn" {
+#   description = "The ARN of the IAM role policy attachment for EKS storage class creation"
+# }
 
-variable "eks_create_storageclass_policy_arn" {
-  description = "The ARN of the IAM policy for EKS storage class creation"
-}
+# variable "eks_create_storageclass_policy_arn" {
+#   description = "The ARN of the IAM policy for EKS storage class creation"
+# }
 
 variable "eks_cluster_role_arn" {
   description = "The ARN of the IAM role for the EKS cluster"
