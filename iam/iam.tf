@@ -165,3 +165,26 @@ output "worker_node_ebs_policy_arn" {
   description = "The ARN of the worker node EBS policy"
   value       = aws_iam_policy.worker_node_ebs_policy.arn
 }
+
+data "aws_iam_policy_document" "eks_namespace_management" {
+  statement {
+    actions = [
+      "eks:CreateNamespace",
+      "eks:DeleteNamespace",
+      "eks:DescribeNamespace",
+      "eks:ListNamespaces"
+    ]
+    resources = ["*"]
+  }
+}
+
+resource "aws_iam_policy" "eks_namespace_management" {
+  name        = "eksNamespaceManagement"
+  description = "Allows management of EKS namespaces"
+  policy      = data.aws_iam_policy_document.eks_namespace_management.json
+}
+
+resource "aws_iam_role_policy_attachment" "eks_namespace_management" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = aws_iam_policy.eks_namespace_management.arn
+}
