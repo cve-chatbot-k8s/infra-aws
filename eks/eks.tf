@@ -137,3 +137,38 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
     var.eks_cluster_role_arn
   ]
 }
+
+resource "kubernetes_namespace" "kafka" {
+  metadata {
+    name = "kafka"
+  }
+}
+
+
+provider "helm" {
+  kubernetes {
+    host                   = module.eks.cluster_endpoint
+    cluster_ca_certificate = base64decode(module.eks.cluster_certificate_authority_data)
+    token                  = data.aws_eks_cluster_auth.cluster.token
+    config_path = "~/.kube/config"
+  }
+}
+
+# data "helm_repository" "bitnami" {
+#   name = "bitnami"
+#   url  = "https://charts.bitnami.com/bitnami"
+# }
+
+resource "helm_release" "kafka" {
+  name       = "kafka"
+  repository = "https://charts.bitnami.com/bitnami"
+  chart      = "kafka"
+  version    = "29.3.4"
+  namespace  = "kafka"
+
+  values = [
+    file("./eks/values.yaml")
+  ]
+
+  depends_on = [module.eks]
+}
