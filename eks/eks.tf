@@ -144,6 +144,17 @@ resource "kubernetes_namespace" "kafka" {
   }
 }
 
+resource "kubernetes_namespace" "webapp" {
+  metadata {
+    name = "webapp"
+  }
+}
+
+resource "kubernetes_namespace" "consumer" {
+  metadata {
+    name = "consumer"
+  }
+}
 
 provider "helm" {
   kubernetes {
