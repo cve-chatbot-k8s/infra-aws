@@ -101,3 +101,8 @@ variable "volume_binding_mode" {
 variable "worker_node_ebs_policy_arn" {
   description = "ebs policy arn"
 }
+
+
+variable "eks_autoscaler_role_arn" {
+  description = "The ARN of the IAM role for the EKS autoscaler"
+}
