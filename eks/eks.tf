@@ -265,3 +265,18 @@ resource "helm_release" "kafka" {
 
   depends_on = [module.eks]
 }
+
+
+resource "helm_release" "cluster_autoscaler" {
+  depends_on = [module.eks, var.eks_autoscaler_role_arn]
+  name       = "cluster-autoscaler"
+  chart = var.chart_path
+  namespace  = "kube-system"
+
+  set {
+    name  = "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    value = var.eks_autoscaler_role_arn
+  }
+
+  values     = [file(var.values_file_path)]
+}
