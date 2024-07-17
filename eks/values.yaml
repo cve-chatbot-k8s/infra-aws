@@ -874,7 +874,9 @@ broker:
   ##   - name: KAFKA_CFG_BACKGROUND_THREADS
   ##     value: "10"
   ##
-  extraEnvVars: []
+  extraEnvVars:
+    - name: KAFKA_CFG_MIN_INSYNC_REPLICAS
+      value: "2"
   ## @param broker.extraEnvVarsCM ConfigMap with extra environment variables
   ##
   extraEnvVarsCM: ""
@@ -2059,15 +2061,14 @@ metrics:
 ## Kafka provisioning
 provisioning:
   enabled: true
-  numPartitions: 2
+  numPartitions: 10
   replicationFactor: 3
   topics:
     - name: cve 
-      partitions: 2
+      partitions: 10
       replicationFactor: 3
       config:
-        max.message.bytes: 64000
-        flush.messages: 1
+        max.message.bytes: 150000
 
 # provisioning:
 #   ## @param provisioning.enabled Enable kafka provisioning Job

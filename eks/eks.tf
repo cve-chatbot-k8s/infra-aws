@@ -156,6 +156,88 @@ resource "kubernetes_namespace" "consumer" {
   }
 }
 
+# resource "kubernetes_resource_quota" "kafka" {
+#   metadata {
+#     name      = "kafka"
+#     namespace = kubernetes_namespace.kafka.metadata[0].name
+#   }
+#
+#   spec {
+#     hard = {
+#       "requests.cpu"    = "1"
+#       "requests.memory" = "1500Mi"
+#       "limits.cpu"      = "2"
+#       "limits.memory"   = "3500Mi"
+#     }
+#   }
+# }
+
+# resource "kubernetes_resource_quota" "webapp" {
+#   metadata {
+#     name      = "webapp"
+#     namespace = kubernetes_namespace.webapp.metadata[0].name
+#   }
+#
+#   spec {
+#     hard = {
+#       "requests.cpu"    = "1"
+#       "requests.memory" = "2Gi"
+#       "limits.cpu"      = "2"
+#       "limits.memory"   = "3700Mi"
+#     }
+#   }
+# }
+
+# resource "kubernetes_resource_quota" "consumer" {
+#   metadata {
+#     name      = "consumer"
+#     namespace = kubernetes_namespace.consumer.metadata[0].name
+#   }
+#
+#   spec {
+#     hard = {
+#       "requests.cpu"    = "1"
+#       "requests.memory" = "1500Mi"
+#       "limits.cpu"      = "2"
+#       "limits.memory"   = "3700Mi"
+#     }
+#   }
+# }
+
+
+# resource "kubernetes_limit_range" "kafka" {
+#   metadata {
+#     name      = "kafka"
+#     namespace = kubernetes_namespace.kafka.metadata[0].name
+#   }
+#
+#   spec {
+#     limit {
+#       type = "Container"
+#
+#       default = {
+#         cpu    = "500m"
+#         memory = "512Mi"
+#       }
+#
+#       default_request = {
+#         cpu    = "250m"
+#         memory = "256Mi"
+#       }
+#
+#       max = {
+#         cpu    = "1"
+#         memory = "1Gi"
+#       }
+#
+#       min = {
+#         cpu    = "100m"
+#         memory = "128Mi"
+#       }
+#     }
+#   }
+# }
+
 provider "helm" {
   kubernetes {
     host                   = module.eks.cluster_endpoint
