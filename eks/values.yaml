@@ -628,7 +628,7 @@ controller:
   ## @param controller.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
   ##
-  podAntiAffinityPreset: soft
+  podAntiAffinityPreset: hard
   ## Node affinity preset
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
   ##
@@ -1009,7 +1009,7 @@ broker:
   ## @param broker.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
   ##
-  podAntiAffinityPreset: soft
+  podAntiAffinityPreset: hard
   ## Node affinity preset
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
   ##
@@ -2067,8 +2067,6 @@ provisioning:
     - name: cve 
       partitions: 10
       replicationFactor: 3
-      config:
-        max.message.bytes: 150000
 
 # provisioning:
 #   ## @param provisioning.enabled Enable kafka provisioning Job

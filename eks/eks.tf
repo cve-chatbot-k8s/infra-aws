@@ -172,38 +172,39 @@ resource "kubernetes_namespace" "consumer" {
 #   }
 # }
 
-# resource "kubernetes_resource_quota" "webapp" {
-#   metadata {
-#     name      = "webapp"
-#     namespace = kubernetes_namespace.webapp.metadata[0].name
-#   }
-#
-#   spec {
-#     hard = {
-#       "requests.cpu"    = "1"
-#       "requests.memory" = "2Gi"
-#       "limits.cpu"      = "2"
-#       "limits.memory"   = "3700Mi"
-#     }
-#   }
-# }
+resource "kubernetes_resource_quota" "webapp" {
+  metadata {
+    name      = "webapp"
+    namespace = kubernetes_namespace.webapp.metadata[0].name
+  }
 
-# resource "kubernetes_resource_quota" "consumer" {
-#   metadata {
-#     name      = "consumer"
-#     namespace = kubernetes_namespace.consumer.metadata[0].name
-#   }
-#
-#   spec {
-#     hard = {
-#       "requests.cpu"    = "1"
-#       "requests.memory" = "1500Mi"
-#       "limits.cpu"      = "2"
-#       "limits.memory"   = "3700Mi"
-#     }
-#   }
-# }
+  spec {
+    hard = {
+      pods = "8"
+      "requests.cpu"    = "1"
+      "requests.memory" = "2Gi"
+      "limits.cpu"      = "2"
+      "limits.memory"   = "3700Mi"
+    }
+  }
+}
 
+resource "kubernetes_resource_quota" "consumer" {
+  metadata {
+    name      = "consumer"
+    namespace = kubernetes_namespace.consumer.metadata[0].name
+  }
+
+  spec {
+    hard = {
+      pods = "8"
+      "requests.cpu"    = "2"
+      "requests.memory" = "1500Mi"
+      "limits.cpu"      = "4"
+      "limits.memory"   = "3700Mi"
+    }
+  }
+}
 
 # resource "kubernetes_limit_range" "kafka" {
 #   metadata {
