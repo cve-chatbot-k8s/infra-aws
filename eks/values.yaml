@@ -566,9 +566,13 @@ controller:
   ## @param controller.resources.limits The resources limits for the container
   ## @param controller.resources.requests The requested resources for the container
   ##
-  resources:
-    limits: {}
-    requests: {}
+#  resources:
+#    limits:
+#      cpu: "300m"
+#      memory: "0.5Gi"
+#    requests:
+#      cpu: "150m"
+#      memory: "256Mi"
   ## Kafka pods' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param controller.podSecurityContext.enabled Enable security context for the pods
@@ -580,6 +584,13 @@ controller:
     fsGroup: 1001
     seccompProfile:
       type: "RuntimeDefault"
+#  initContainerResources:
+#    requests:
+#      cpu: "25m"
+#      memory: "128Mi"
+#    limits:
+#      cpu: "100m"
+#      memory: "256Mi"
   ## Kafka containers' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container
   ## @param controller.containerSecurityContext.enabled Enable Kafka containers' Security Context
@@ -947,9 +958,13 @@ broker:
   ## @param broker.resources.limits The resources limits for the container
   ## @param broker.resources.requests The requested resources for the container
   ##
-  resources:
-    limits: {}
-    requests: {}
+#  resources:
+#    limits:
+#      cpu: "300m"
+#      memory: "512Mi"
+#    requests:
+#      cpu: "150m"
+#      memory: "256Mi"
   ## Kafka pods' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param broker.podSecurityContext.enabled Enable security context for the pods
@@ -984,6 +999,14 @@ broker:
     readOnlyRootFilesystem: true
     capabilities:
       drop: ["ALL"]
+
+#  initContainerResources:
+#    requests:
+#      cpu: "25m"
+#      memory: "64Mi"
+#    limits:
+#      cpu: "100m"
+#      memory: "256Mi"
   ## @param broker.hostAliases Kafka pods host aliases
   ## https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
   ##
