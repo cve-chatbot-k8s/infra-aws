@@ -117,3 +117,9 @@ variable "chart_path" {
   type        = string
   default     = "../helm-eks-autoscaler/cluster-autoscaler"
 }
+
+variable "values_override_file_path" {
+  description = "Path to the values.override.yaml file"
+  default     = "../helm-eks-autoscaler/cluster-autoscaler/values.override.yaml"
+  type        = string
+}

@@ -27,6 +27,7 @@ module "iam" {
   # worker_iam_role_names = module.eks.worker_iam_role_names
   irsa_output   = module.eks.irsa_output
   irsa_role_arn = module.eks.irsa_role_arn
+  oidc_provider = module.eks.oidc_provider
 }
 
 module "eks" {
