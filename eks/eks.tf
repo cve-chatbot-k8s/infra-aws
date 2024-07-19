@@ -186,23 +186,23 @@ resource "kubernetes_limit_range" "webapp" {
       type = "Container"
 
       default = {
-        cpu    = "1"
-        memory = "2000Mi"
+        cpu    = var.webapp_default_limits["cpu"]
+        memory = var.webapp_default_limits["memory"]
       }
 
       default_request = {
-        cpu    = "0.5"
-        memory = "1Gi"
+        cpu    = var.webapp_default_requests["cpu"]
+        memory = var.webapp_default_requests["memory"]
       }
 
       max = {
-        cpu    = "1.5"
-        memory = "3600Mi"
+        cpu    = var.webapp_max_limits["cpu"]
+        memory = var.webapp_max_limits["memory"]
       }
 
       min = {
-        cpu    = "100m"  # Assuming a sensible minimum
-        memory = "256Mi" # Assuming a sensible minimum
+        cpu    = var.webapp_min_limits["cpu"]
+        memory = var.webapp_min_limits["memory"]
       }
     }
   }
@@ -219,23 +219,23 @@ resource "kubernetes_limit_range" "consumer" {
       type = "Container"
 
       max = {
-        cpu    = "4"
-        memory = "3700Mi"
+        cpu    = var.consumer_max_limits["cpu"]
+        memory = var.consumer_max_limits["memory"]
       }
 
       min = {
-        cpu    = "100m"
-        memory = "256Mi"
+        cpu    = var.consumer_min_limits["cpu"]
+        memory = var.consumer_min_limits["memory"]
       }
 
       default = {
-        cpu    = "1"
-        memory = "1000Mi"
+        cpu    = var.consumer_default_limits["cpu"]
+        memory = var.consumer_default_limits["memory"]
       }
 
       default_request = {
-        cpu    = "0.5"
-        memory = "500Mi"
+        cpu    = var.consumer_default_requests["cpu"]
+        memory = var.consumer_default_requests["memory"]
       }
     }
   }
@@ -252,23 +252,23 @@ resource "kubernetes_limit_range" "kafka" {
       type = "Container"
 
       default = {
-        cpu    = "250m"
-        memory = "256Mi"
+        cpu    = var.kafka_default_limits["cpu"]
+        memory = var.kafka_default_limits["memory"]
       }
 
       default_request = {
-        cpu    = "125m"
-        memory = "128Mi"
+        cpu    = var.kafka_default_requests["cpu"]
+        memory = var.kafka_default_requests["memory"]
       }
 
       max = {
-        cpu    = "1"
-        memory = "1Gi"
+        cpu    = var.kafka_max_limits["cpu"]
+        memory = var.kafka_max_limits["memory"]
       }
 
       min = {
-        cpu    = "10m"
-        memory = "16Mi"
+        cpu    = var.kafka_min_limits["cpu"]
+        memory = var.kafka_min_limits["memory"]
       }
     }
   }
