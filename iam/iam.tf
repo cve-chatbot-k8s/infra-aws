@@ -228,18 +228,19 @@ resource "aws_iam_role" "eks_autoscaler_role" {
       {
         Effect = "Allow"
         Principal = {
-          Federated = "arn:aws:iam::905418442014:oidc-provider/oidc.eks.us-east-1.amazonaws.com/id/1F549F2157D312A4AFA5E0BB8C1F44FC"
+          Federated = "arn:aws:iam::905418442014:oidc-provider/${var.oidc_provider}"
         }
         Action = "sts:AssumeRoleWithWebIdentity"
         Condition = {
           StringEquals = {
-            "oidc.eks.us-east-1.amazonaws.com/id/1F549F2157D312A4AFA5E0BB8C1F44FC:sub" : "system:serviceaccount:kube-system:cluster-autoscaler"
+            "${var.oidc_provider}:sub" : "system:serviceaccount:kube-system:cluster-autoscaler"
           }
         }
       }
     ]
   })
 }
+
 
   resource "aws_iam_role_policy_attachment" "eks_autoscaler_policy" {
     role       = aws_iam_role.eks_autoscaler_role.name

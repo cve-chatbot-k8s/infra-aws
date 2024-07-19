@@ -12,3 +12,8 @@ variable "irsa_role_arn" {
 #   default = "cve-eks-cluster"
 #   description = "The name of the EKS cluster"
 # }
+
+variable "oidc_provider" {
+  description = "OIDC provider url"
+  type        = string
+}

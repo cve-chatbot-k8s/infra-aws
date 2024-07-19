@@ -164,80 +164,112 @@ resource "kubernetes_namespace" "consumer" {
 #
 #   spec {
 #     hard = {
-#       "requests.cpu"    = "1"
-#       "requests.memory" = "1500Mi"
-#       "limits.cpu"      = "2"
-#       "limits.memory"   = "3500Mi"
+#       "requests.cpu"    = "1.9"
+#       "requests.memory" = "3100Mi"
+#       "limits.cpu"      = "3.5"
+#       "limits.memory"   = "5400Mi"
 #     }
 #   }
 # }
 
-resource "kubernetes_resource_quota" "webapp" {
+resource "kubernetes_limit_range" "webapp" {
   metadata {
     name      = "webapp"
     namespace = kubernetes_namespace.webapp.metadata[0].name
   }
 
   spec {
-    hard = {
-      pods = "8"
-      "requests.cpu"    = "1"
-      "requests.memory" = "2Gi"
-      "limits.cpu"      = "2"
-      "limits.memory"   = "3700Mi"
+    limit {
+      type = "Container"
+
+      default = {
+        cpu    = "1"
+        memory = "2000Mi"
+      }
+
+      default_request = {
+        cpu    = "0.5"
+        memory = "1Gi"
+      }
+
+      max = {
+        cpu    = "1.5"
+        memory = "3600Mi"
+      }
+
+      min = {
+        cpu    = "100m"  # Assuming a sensible minimum
+        memory = "256Mi" # Assuming a sensible minimum
+      }
     }
   }
 }
 
-resource "kubernetes_resource_quota" "consumer" {
+resource "kubernetes_limit_range" "consumer" {
   metadata {
     name      = "consumer"
     namespace = kubernetes_namespace.consumer.metadata[0].name
   }
 
   spec {
-    hard = {
-      pods = "8"
-      "requests.cpu"    = "2"
-      "requests.memory" = "1500Mi"
-      "limits.cpu"      = "4"
-      "limits.memory"   = "3700Mi"
+    limit {
+      type = "Container"
+
+      max = {
+        cpu    = "4"
+        memory = "3700Mi"
+      }
+
+      min = {
+        cpu    = "100m"
+        memory = "256Mi"
+      }
+
+      default = {
+        cpu    = "1"
+        memory = "1000Mi"
+      }
+
+      default_request = {
+        cpu    = "0.5"
+        memory = "500Mi"
+      }
     }
   }
 }
 
-# resource "kubernetes_limit_range" "kafka" {
-#   metadata {
-#     name      = "kafka"
-#     namespace = kubernetes_namespace.kafka.metadata[0].name
-#   }
-#
-#   spec {
-#     limit {
-#       type = "Container"
-#
-#       default = {
-#         cpu    = "500m"
-#         memory = "512Mi"
-#       }
-#
-#       default_request = {
-#         cpu    = "250m"
-#         memory = "256Mi"
-#       }
-#
-#       max = {
-#         cpu    = "1"
-#         memory = "1Gi"
-#       }
-#
-#       min = {
-#         cpu    = "100m"
-#         memory = "128Mi"
-#       }
-#     }
-#   }
-# }
+resource "kubernetes_limit_range" "kafka" {
+  metadata {
+    name      = "kafka"
+    namespace = kubernetes_namespace.kafka.metadata[0].name
+  }
+
+  spec {
+    limit {
+      type = "Container"
+
+      default = {
+        cpu    = "250m"
+        memory = "256Mi"
+      }
+
+      default_request = {
+        cpu    = "125m"
+        memory = "128Mi"
+      }
+
+      max = {
+        cpu    = "1"
+        memory = "1Gi"
+      }
+
+      min = {
+        cpu    = "10m"
+        memory = "16Mi"
+      }
+    }
+  }
+}
 
 provider "helm" {
   kubernetes {
@@ -267,7 +299,6 @@ resource "helm_release" "kafka" {
   depends_on = [module.eks]
 }
 
-
 resource "helm_release" "cluster_autoscaler" {
   depends_on = [module.eks, var.eks_autoscaler_role_arn]
   name       = "cluster-autoscaler"
@@ -279,5 +310,9 @@ resource "helm_release" "cluster_autoscaler" {
     value = var.eks_autoscaler_role_arn
   }
 
-  values     = [file(var.values_file_path)]
+  values     = [file(var.values_file_path), file(var.values_override_file_path)]
+}
+
+output "oidc_provider" {
+  value = module.eks.oidc_provider
 }
