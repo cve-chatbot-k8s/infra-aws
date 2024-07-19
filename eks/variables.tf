@@ -123,3 +123,111 @@ variable "values_override_file_path" {
   default     = "../helm-eks-autoscaler/cluster-autoscaler/values.override.yaml"
   type        = string
 }
+
+variable "webapp_default_limits" {
+  description = "Default limits for CPU and memory for webapp"
+  type = map(string)
+  default = {
+    cpu    = "1"
+    memory = "2000Mi"
+  }
+}
+
+variable "webapp_default_requests" {
+  description = "Default requests for CPU and memory for webapp"
+  type = map(string)
+  default = {
+    cpu    = "0.5"
+    memory = "1Gi"
+  }
+}
+
+variable "webapp_max_limits" {
+  description = "Maximum limits for CPU and memory for webapp"
+  type = map(string)
+  default = {
+    cpu    = "1.5"
+    memory = "3600Mi"
+  }
+}
+
+variable "webapp_min_limits" {
+  description = "Minimum limits for CPU and memory for webapp"
+  type = map(string)
+  default = {
+    cpu    = "100m"
+    memory = "256Mi"
+  }
+}
+
+variable "consumer_max_limits" {
+  description = "Maximum CPU and memory limits for the consumer namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "4"
+    memory = "3700Mi"
+  }
+}
+
+variable "consumer_min_limits" {
+  description = "Minimum CPU and memory limits for the consumer namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "100m"
+    memory = "256Mi"
+  }
+}
+
+variable "consumer_default_limits" {
+  description = "Default CPU and memory limits for the consumer namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "1"
+    memory = "1000Mi"
+  }
+}
+
+variable "consumer_default_requests" {
+  description = "Default CPU and memory requests for the consumer namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "0.5"
+    memory = "500Mi"
+  }
+}
+
+variable "kafka_max_limits" {
+  description = "Maximum CPU and memory limits for the kafka namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "1"
+    memory = "1Gi"
+  }
+}
+
+variable "kafka_min_limits" {
+  description = "Minimum CPU and memory limits for the kafka namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "10m"
+    memory = "16Mi"
+  }
+}
+
+variable "kafka_default_limits" {
+  description = "Default CPU and memory limits for the kafka namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "250m"
+    memory = "256Mi"
+  }
+}
+
+variable "kafka_default_requests" {
+  description = "Default CPU and memory requests for the kafka namespace"
+  type        = map(string)
+  default     = {
+    cpu    = "125m"
+    memory = "128Mi"
+  }
+}
