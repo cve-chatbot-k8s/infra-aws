@@ -159,6 +159,12 @@ resource "kubernetes_namespace" "consumer" {
   }
 }
 
+resource "kubernetes_namespace" "operator" {
+  metadata {
+    name = "operator"
+  }
+}
+
 # resource "kubernetes_resource_quota" "kafka" {
 #   metadata {
 #     name      = "kafka"
