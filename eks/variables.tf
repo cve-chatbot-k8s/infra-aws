@@ -128,8 +128,8 @@ variable "webapp_default_limits" {
   description = "Default limits for CPU and memory for webapp"
   type = map(string)
   default = {
-    cpu    = "1"
-    memory = "2000Mi"
+    cpu    = "0.2"
+    memory = "200Mi"
   }
 }
 
@@ -137,8 +137,8 @@ variable "webapp_default_requests" {
   description = "Default requests for CPU and memory for webapp"
   type = map(string)
   default = {
-    cpu    = "0.5"
-    memory = "1Gi"
+    cpu    = "10m"
+    memory = "40Mi"
   }
 }
 
@@ -146,8 +146,8 @@ variable "webapp_max_limits" {
   description = "Maximum limits for CPU and memory for webapp"
   type = map(string)
   default = {
-    cpu    = "1.5"
-    memory = "3600Mi"
+    cpu    = "2"
+    memory = "3000Mi"
   }
 }
 
@@ -155,8 +155,8 @@ variable "webapp_min_limits" {
   description = "Minimum limits for CPU and memory for webapp"
   type = map(string)
   default = {
-    cpu    = "100m"
-    memory = "256Mi"
+    cpu    = "10m"
+    memory = "30Mi"
   }
 }
 
@@ -173,8 +173,8 @@ variable "consumer_min_limits" {
   description = "Minimum CPU and memory limits for the consumer namespace"
   type        = map(string)
   default     = {
-    cpu    = "100m"
-    memory = "256Mi"
+    cpu    = "10m"
+    memory = "30Mi"
   }
 }
 
@@ -191,8 +191,8 @@ variable "consumer_default_requests" {
   description = "Default CPU and memory requests for the consumer namespace"
   type        = map(string)
   default     = {
-    cpu    = "0.5"
-    memory = "500Mi"
+    cpu    = "10m"
+    memory = "40Mi"
   }
 }
 
@@ -200,7 +200,7 @@ variable "kafka_max_limits" {
   description = "Maximum CPU and memory limits for the kafka namespace"
   type        = map(string)
   default     = {
-    cpu    = "1"
+    cpu    = "2"
     memory = "1Gi"
   }
 }
@@ -231,3 +231,5 @@ variable "kafka_default_requests" {
     memory = "128Mi"
   }
 }
+
+variable "fluentbit_values_file" {}

@@ -1,0 +1,55 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: istio-pods
+  namespace: monitoring
+  labels:
+    prometheus: main
+spec:
+  namespaceSelector:
+    matchNames:
+      - webapp
+      - consumer
+      - kafka
+  selector:
+    matchLabels:
+      istio: monitor
+  podMetricsEndpoints:
+    - port: http-envoy-prom
+      path: stats/prometheus
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-prom
+  namespace: istio-system
+  labels:
+    app: gateway
+spec:
+  ports:
+    - name: metrics
+      port: 15090
+  selector:
+    app: gateway
+    istio: gateway
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: myapp
+  namespace: monitoring
+  labels:
+    prometheus: main
+spec:
+  namespaceSelector:
+    matchNames:
+      - istio-system
+  selector:
+    matchLabels:
+      app: gateway
+  endpoints:
+    - port: metrics
+      path: /stats/prometheus
