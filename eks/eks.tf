@@ -65,6 +65,30 @@ module "eks" {
       tags = {
         Name   = "webapp-nodes"
       }
+      iam_role_additional_policies = {
+        "CloudWatchAgentServerPolicy" = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+      }
+    }
+  }
+
+  #  EKS K8s API cluster needs to be able to talk with the EKS worker nodes with port 15017/TCP and 15012/TCP which is used by Istio
+  #  Istio in order to create sidecar needs to be able to communicate with webhook and for that network passage to EKS is needed.
+  node_security_group_additional_rules = {
+    ingress_15017 = {
+      description                   = "Cluster API - Istio Webhook namespace.sidecar-injector.istio.io"
+      protocol                      = "TCP"
+      from_port                     = 15017
+      to_port                       = 15017
+      type                          = "ingress"
+      source_cluster_security_group = true
+    }
+    ingress_15012 = {
+      description                   = "Cluster API to nodes ports/protocols"
+      protocol                      = "TCP"
+      from_port                     = 15012
+      to_port                       = 15012
+      type                          = "ingress"
+      source_cluster_security_group = true
     }
   }
 
@@ -73,6 +97,7 @@ module "eks" {
   tags = {
     Environment = "dev"
     Terraform   = "true"
+    Module      = "eks"
   }
 }
 
@@ -141,27 +166,77 @@ resource "kubernetes_storage_class" "ebs_csi_encrypted" {
   ]
 }
 
+# data "aws_iam_roles" "all_roles" {}
+#
+# locals {
+#   webapp_eks_node_group_role = one([
+#     for role in data.aws_iam_roles.all_roles.names : role if startswith(role, "webapp-eks-node-group-")
+#   ])
+# }
+#
+# resource "aws_iam_role_policy_attachment" "webapp_eks_node_group_cloudwatch_policy" {
+#   role       = local.webapp_eks_node_group_role
+#   policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+# }
+
 resource "kubernetes_namespace" "kafka" {
   metadata {
     name = "kafka"
+    labels = {
+      "istio-injection" = "enabled"
+      "monitoring"       = "prometheus"
+    }
   }
 }
 
 resource "kubernetes_namespace" "webapp" {
   metadata {
     name = "webapp"
+    labels = {
+      "istio-injection" = "enabled"
+      "monitoring"       = "prometheus"
+    }
   }
 }
 
 resource "kubernetes_namespace" "consumer" {
   metadata {
     name = "consumer"
+    labels = {
+      "istio-injection" = "enabled"
+      "monitoring"       = "prometheus"
+    }
   }
 }
 
 resource "kubernetes_namespace" "operator" {
   metadata {
     name = "operator"
+    labels = {
+      "istio-injection" = "enabled"
+      "monitoring"       = "prometheus"
+    }
+  }
+}
+
+resource "kubernetes_namespace" "amazon-cloudwatch" {
+  metadata {
+    name = "amazon-cloudwatch"
+  }
+}
+
+resource "kubernetes_namespace" "istio-system" {
+  metadata {
+    name = "istio-system"
+    labels = {
+      "monitoring"       = "prometheus"
+    }
+  }
+}
+
+resource "kubernetes_namespace" "monitoring" {
+  metadata {
+    name = "monitoring"
   }
 }
 
@@ -305,7 +380,7 @@ resource "helm_release" "kafka" {
     file("./eks/values.yaml")
   ]
 
-  depends_on = [module.eks]
+  depends_on = [module.eks, kubernetes_namespace.kafka, helm_release.istiod]
 }
 
 resource "helm_release" "cluster_autoscaler" {
@@ -320,6 +395,66 @@ resource "helm_release" "cluster_autoscaler" {
   }
 
   values     = [file(var.values_file_path), file(var.values_override_file_path)]
+}
+
+resource "helm_release" "cloudwatch" {
+    name       = "amazon-cloudwatch-observability"
+    repository = "https://aws-observability.github.io/helm-charts"
+    chart      = "amazon-cloudwatch-observability"
+    namespace  = "amazon-cloudwatch"
+
+    values = [
+        file("./eks/examples/cloudwatch-values.yaml")
+    ]
+
+    depends_on = [module.eks, kubernetes_namespace.amazon-cloudwatch]
+}
+
+
+resource "helm_release" "istio_base" {
+  name       = "istio-base"
+  repository = "https://istio-release.storage.googleapis.com/charts"
+  chart      = "base"
+  namespace  = "istio-system"
+
+  set {
+    name  = "profile"
+    value = "demo"
+  }
+
+  depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.cloudwatch]
+}
+
+resource "helm_release" "istiod" {
+  name       = "istiod"
+  repository = "https://istio-release.storage.googleapis.com/charts"
+  chart      = "istiod"
+  namespace  = "istio-system"
+
+  set {
+    name  = "profile"
+    value = "demo"
+  }
+
+  depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istio_base]
+}
+
+resource "helm_release" "istio_ingressgateway" {
+  name       = "istio-ingressgateway"
+  repository = "https://istio-release.storage.googleapis.com/charts"
+  chart      = "gateway"
+  namespace  = "istio-system"
+
+  depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istiod]
+}
+
+resource "helm_release" "kube_prometheus_stack" {
+  name       = "production"
+  repository = "https://prometheus-community.github.io/helm-charts"
+  chart      = "kube-prometheus-stack"
+  namespace  = "monitoring"
+
+  depends_on = [module.eks, kubernetes_namespace.monitoring, helm_release.istio_ingressgateway]
 }
 
 output "oidc_provider" {

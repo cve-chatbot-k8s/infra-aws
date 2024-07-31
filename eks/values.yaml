@@ -1651,7 +1651,7 @@ metrics:
   kafka:
     ## @param metrics.kafka.enabled Whether or not to create a standalone Kafka exporter to expose Kafka metrics
     ##
-    enabled: false
+    enabled: true
     ## Bitnami Kafka exporter image
     ## ref: https://hub.docker.com/r/bitnami/kafka-exporter/tags/
     ## @param metrics.kafka.image.registry [default: REGISTRY_NAME] Kafka exporter image registry
@@ -2233,7 +2233,8 @@ provisioning:
   ## @param provisioning.podLabels Extra labels for Kafka provisioning pods
   ## Ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
   ##
-  podLabels: {}
+  podLabels:
+    sidecar.istio.io/inject: "false"
   ## Kafka provisioning pods ServiceAccount
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
   ##

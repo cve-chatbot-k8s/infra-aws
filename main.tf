@@ -40,6 +40,7 @@ module "eks" {
   eks_cluster_role_arn           = module.iam.eks_cluster_role_arn
   worker_node_ebs_policy_arn     = module.iam.worker_node_ebs_policy_arn
   eks_autoscaler_role_arn        = module.iam.eks_autoscaler_role_arn
+  fluentbit_values_file          = ""
 }
 
 

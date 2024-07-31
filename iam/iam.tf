@@ -76,6 +76,12 @@ resource "aws_iam_role_policy_attachment" "worker_node_ebs_policy_attachment" {
   policy_arn = aws_iam_policy.worker_node_ebs_policy.arn
 }
 
+# CloudWatch Iam policy https://docs.aws.amazon.com/aws-managed-policy/latest/reference/CloudWatchAgentServerPolicy.html
+resource "aws_iam_role_policy_attachment" "worker_node_cloudwatch_policy" {
+  role       = aws_iam_role.eks_node_role.name
+  policy_arn = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+}
+
 resource "aws_iam_policy" "irsa_ebs_kms_policy" {
   name        = "irsa_ebs_kms_policy"
   description = "Custom policy for IRSA"
