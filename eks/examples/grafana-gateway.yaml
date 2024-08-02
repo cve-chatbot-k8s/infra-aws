@@ -50,3 +50,30 @@ spec:
   trafficPolicy:
     tls:
       mode: DISABLE
+
+---
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: "example.com,www.example.com"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  rules:
+    - host: example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: example-service
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - example.com
+        - www.example.com
+      secretName: example-com-tls

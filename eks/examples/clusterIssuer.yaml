@@ -41,17 +41,19 @@ spec:
       name: letsencrypt-staging-key
     # Add a single challenge solver, HTTP01 using nginx
     solvers:
-      - http01:
-          ingress:
-            ingressClassName: istio
+      - dns01:
+          route53:
+            region: us-east-1
+            hostedZoneID: Z033701123QS41CH58UNR
+        selector:
+          dnsZones:
+            - missionk8s.xyz
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: grafana-cert
   namespace: istio-system
-  annotations:
-    cert-manager.io/issue-temporary-certificate: "true"
 spec:
   secretName: grafana-tls
   commonName: grafana.missionk8s.xyz
