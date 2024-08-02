@@ -452,10 +452,10 @@ resource "helm_release" "istio_base" {
   chart      = "base"
   namespace  = "istio-system"
 
-  set {
-    name  = "profile"
-    value = "demo"
-  }
+#   set {
+#     name  = "profile"
+#     value = "demo"
+#   }
 
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.cloudwatch]
 }
@@ -466,9 +466,18 @@ resource "helm_release" "istiod" {
   chart      = "istiod"
   namespace  = "istio-system"
 
+#   set {
+#     name  = "profile"
+#     value = "demo"
+#   }
+
+  values = [
+    file("./eks/examples/custom-istio-profile.yaml")
+  ]
+
   set {
-    name  = "profile"
-    value = "demo"
+    name  = "logAsJson"
+    value = "true"
   }
 
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istio_base]
@@ -479,6 +488,9 @@ resource "helm_release" "istio_ingressgateway" {
   repository = "https://istio-release.storage.googleapis.com/charts"
   chart      = "gateway"
   namespace  = "istio-system"
+  values = [
+    file("./eks/examples/custom-istio-profile.yaml")
+  ]
 
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istiod]
 }
@@ -490,6 +502,13 @@ resource "helm_release" "kube_prometheus_stack" {
   namespace  = "monitoring"
 
   depends_on = [module.eks, kubernetes_namespace.monitoring, helm_release.istio_ingressgateway]
+}
+
+resource "null_resource" "install_kafka_monitor" {
+    provisioner "local-exec" {
+        command = "kubectl apply -f ./eks/examples/kafkamonitor.yaml"
+    }
+    depends_on = [module.eks, helm_release.kube_prometheus_stack, helm_release.kafka]
 }
 
 output "oidc_provider" {

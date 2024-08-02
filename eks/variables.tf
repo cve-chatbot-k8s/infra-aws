@@ -79,7 +79,7 @@ variable "min_size" {
 
 variable "max_size" {
   description = "The maximum number of worker nodes"
-  default     = 6
+  default     = 7
 }
 
 variable "max_unavailable" {
