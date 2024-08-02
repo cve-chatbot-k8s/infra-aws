@@ -67,6 +67,7 @@ module "eks" {
       }
       iam_role_additional_policies = {
         "CloudWatchAgentServerPolicy" = "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+        "AmazonRoute53FullAccess"     = "arn:aws:iam::aws:policy/AmazonRoute53FullAccess"
       }
     }
   }
@@ -136,6 +137,40 @@ output "cluster_endpoint" {
 
 data "aws_eks_cluster_auth" "cluster" {
   name = module.eks.cluster_name
+}
+
+module "eks_blueprints_addons" {
+  source = "aws-ia/eks-blueprints-addons/aws"
+  version = "~> 1.0" #ensure to update this to the latest/desired version
+
+  cluster_name      = module.eks.cluster_name
+  cluster_endpoint  = module.eks.cluster_endpoint
+  cluster_version   = module.eks.cluster_version
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+
+  # enable_aws_load_balancer_controller    = true
+  # enable_cluster_proportional_autoscaler = true
+  # enable_karpenter                       = true
+  # enable_kube_prometheus_stack           = true
+  # enable_metrics_server                  = true
+  enable_external_dns                    = true
+  enable_cert_manager                    = true
+  cert_manager_route53_hosted_zone_arns  = ["arn:aws:route53:::hostedzone/Z033701123QS41CH58UNR"]
+
+  tags = {
+    Environment = "cert-manager"
+  }
+
+  depends_on = [module.eks]
+}
+
+resource "null_resource" "install_cert_manager_crds" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml"
+  }
+
+  depends_on = [module.eks, module.eks_blueprints_addons]
 }
 
 provider "kubernetes" {

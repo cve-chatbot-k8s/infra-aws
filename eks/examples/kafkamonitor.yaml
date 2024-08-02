@@ -1,0 +1,28 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  annotations:
+    meta.helm.sh/release-name: kafka
+    meta.helm.sh/release-namespace: kafka
+  labels:
+    app.kubernetes.io/component: metrics
+    app.kubernetes.io/instance: kafka
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: kafka
+    app.kubernetes.io/version: 3.7.0
+#    helm.sh/chart: kafka-29.3.4
+    release: production
+  name: kafka-metrics-service-monitor
+  namespace: monitoring
+spec:
+  endpoints:
+    - path: /metrics
+      port: http-metrics
+  namespaceSelector:
+    matchNames:
+      - kafka
+  selector:
+    matchLabels:
+#      app.kubernetes.io/component: metrics
+      app.kubernetes.io/instance: kafka
+      app.kubernetes.io/name: kafka
