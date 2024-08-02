@@ -227,8 +227,8 @@ variable "kafka_default_requests" {
   description = "Default CPU and memory requests for the kafka namespace"
   type        = map(string)
   default     = {
-    cpu    = "125m"
-    memory = "128Mi"
+    cpu    = "10m"
+    memory = "20Mi"
   }
 }
 
