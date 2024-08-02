@@ -452,11 +452,6 @@ resource "helm_release" "istio_base" {
   chart      = "base"
   namespace  = "istio-system"
 
-  set {
-    name  = "profile"
-    value = "demo"
-  }
-
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.cloudwatch]
 }
 
@@ -466,11 +461,10 @@ resource "helm_release" "istiod" {
   chart      = "istiod"
   namespace  = "istio-system"
 
-  set {
-    name  = "profile"
-    value = "demo"
-  }
-
+  values = [
+    file("./eks/examples/custom-istio-profile.yaml")
+  ]
+  
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istio_base]
 }
 
@@ -479,6 +473,10 @@ resource "helm_release" "istio_ingressgateway" {
   repository = "https://istio-release.storage.googleapis.com/charts"
   chart      = "gateway"
   namespace  = "istio-system"
+
+  values = [
+    file("./eks/examples/custom-istio-profile.yaml")
+  ]
 
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istiod]
 }
