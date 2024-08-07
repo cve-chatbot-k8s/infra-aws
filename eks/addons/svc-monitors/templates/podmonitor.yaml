@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: {{ include "svc-monitors.fullname" . }}-istio-pods
+  namespace: {{ .Release.Namespace }}
+  labels:
+    prometheus: main
+  {{- include "svc-monitors.labels" . | nindent 4 }}
+spec:
+  namespaceSelector:
+    matchNames:
+    - webapp
+    - consumer
+    - kafka
+  podMetricsEndpoints:
+  - path: stats/prometheus
+    port: http-envoy-prom
+  selector:
+    matchLabels:
+      istio: monitor
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "svc-monitors.fullname" . }}-gateway-prom
+  namespace: istio-system
+  labels:
+    app: gateway
+  {{- include "svc-monitors.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.gatewayProm.type }}
+  selector:
+    app: gateway
+    istio: gateway
+  {{- include "svc-monitors.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.gatewayProm.ports | toYaml | nindent 2 }}
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "svc-monitors.fullname" . }}-myapp
+  namespace: {{ .Release.Namespace }}
+  labels:
+    prometheus: main
+  {{- include "svc-monitors.labels" . | nindent 4 }}
+spec:
+  endpoints:
+  - path: /stats/prometheus
+    port: metrics
+  namespaceSelector:
+    matchNames:
+    - istio-system
+  selector:
+    matchLabels:
+      app: gateway

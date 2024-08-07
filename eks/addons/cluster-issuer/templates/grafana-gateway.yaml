@@ -1,0 +1,57 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: grafana-gateway
+  labels:
+  {{- include "cluster-issuer.labels" . | nindent 4 }}
+annotations:
+  external-dns.alpha.kubernetes.io/hostname: grafana.missionk8s.xyz
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - '*'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+  - hosts:
+    - grafana.missionk8s.xyz
+    port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      credentialName: grafana-tls
+      mode: SIMPLE
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana-vs
+  labels:
+  {{- include "cluster-issuer.labels" . | nindent 4 }}
+spec:
+  gateways:
+  - grafana-gateway
+  hosts:
+  - grafana.missionk8s.xyz
+  http:
+  - route:
+    - destination:
+        host: production-grafana.monitoring.svc.cluster.local
+        port:
+          number: 80
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {{ include "cluster-issuer.fullname" . }}-grafana
+  labels:
+  {{- include "cluster-issuer.labels" . | nindent 4 }}
+spec:
+  host: production-grafana.monitoring.svc.cluster.local
+  trafficPolicy:
+    tls:
+      mode: DISABLE

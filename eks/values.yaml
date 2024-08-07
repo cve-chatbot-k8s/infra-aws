@@ -446,7 +446,7 @@ controller:
   ## @param controller.replicaCount Number of Kafka controller-eligible nodes
   ## Ignore this section if running in Zookeeper mode.
   ##
-  replicaCount: 1
+  replicaCount: 3
   ## @param controller.controllerOnly If set to true, controller nodes will be deployed as dedicated controllers, instead of controller+broker processes.
   ##
   controllerOnly: false
@@ -566,13 +566,13 @@ controller:
   ## @param controller.resources.limits The resources limits for the container
   ## @param controller.resources.requests The requested resources for the container
   ##
-#  resources:
-#    limits:
-#      cpu: "300m"
-#      memory: "0.5Gi"
-#    requests:
-#      cpu: "150m"
-#      memory: "256Mi"
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "900Mi"
+    requests:
+      cpu: "150m"
+      memory: "256Mi"
   ## Kafka pods' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param controller.podSecurityContext.enabled Enable security context for the pods
@@ -639,7 +639,7 @@ controller:
   ## @param controller.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
   ##
-  podAntiAffinityPreset: hard
+  podAntiAffinityPreset: soft
   ## Node affinity preset
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
   ##
@@ -750,9 +750,9 @@ controller:
   ## @param controller.pdb.maxUnavailable Maximum number/percentage of unavailable Kafka replicas
   ##
   pdb:
-    create: false
-    minAvailable: ""
-    maxUnavailable: 1
+    create: true
+    minAvailable: 1
+    maxUnavailable: ""
   ## Enable persistence using Persistent Volume Claims
   ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
   ##
@@ -958,13 +958,13 @@ broker:
   ## @param broker.resources.limits The resources limits for the container
   ## @param broker.resources.requests The requested resources for the container
   ##
-#  resources:
-#    limits:
-#      cpu: "300m"
-#      memory: "512Mi"
-#    requests:
-#      cpu: "150m"
-#      memory: "256Mi"
+  resources:
+    limits:
+      cpu: "700m"
+      memory: "900Mi"
+    requests:
+      cpu: "150m"
+      memory: "256Mi"
   ## Kafka pods' Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param broker.podSecurityContext.enabled Enable security context for the pods
@@ -1032,7 +1032,7 @@ broker:
   ## @param broker.podAntiAffinityPreset Pod anti-affinity preset. Ignored if `affinity` is set. Allowed values: `soft` or `hard`
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#inter-pod-affinity-and-anti-affinity
   ##
-  podAntiAffinityPreset: hard
+  podAntiAffinityPreset: soft
   ## Node affinity preset
   ## Ref: https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#node-affinity
   ##
@@ -1144,8 +1144,8 @@ broker:
   ##
   pdb:
     create: false
-    minAvailable: ""
-    maxUnavailable: 1
+    minAvailable: 1
+    maxUnavailable: ""
   ## Enable persistence using Persistent Volume Claims
   ## ref: https://kubernetes.io/docs/user-guide/persistent-volumes/
   ##
@@ -1638,7 +1638,7 @@ rbac:
   ## binding Kafka ServiceAccount to a role
   ## that allows Kafka pods querying the K8s API
   ##
-  create: false
+  create: true
 
 ## @section Metrics parameters
 ##

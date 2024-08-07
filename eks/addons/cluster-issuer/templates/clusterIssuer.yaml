@@ -1,0 +1,37 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ include "cluster-issuer.fullname" . }}-letsencrypt-staging
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "cluster-issuer.labels" . | nindent 4 }}
+spec:
+  acme:
+    email: raaz.adarsh@gmail.com
+    privateKeySecretRef:
+      name: letsencrypt-staging-key
+    server: https://acme-staging-v02.api.letsencrypt.org/directory
+    solvers:
+    - dns01:
+        route53:
+          hostedZoneID: Z033701123QS41CH58UNR
+          region: us-east-1
+      selector:
+        dnsZones:
+        - missionk8s.xyz
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: grafana-cert
+  namespace: {{ .Release.Namespace }}
+  labels:
+  {{- include "cluster-issuer.labels" . | nindent 4 }}
+spec:
+  commonName: grafana.missionk8s.xyz
+  dnsNames:
+  - 'grafana.missionk8s.xyz'
+  issuerRef:
+    kind: ClusterIssuer
+    name: 'letsencrypt-staging'
+  secretName: grafana-tls

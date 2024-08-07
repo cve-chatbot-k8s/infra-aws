@@ -1,0 +1,23 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "svc-monitors.fullname" . }}-kafka-metrics-service-monitor
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: metrics
+    release: production
+  {{- include "svc-monitors.labels" . | nindent 4 }}
+  annotations:
+    meta.helm.sh/release-name: kafka
+    meta.helm.sh/release-namespace: kafka
+spec:
+  endpoints:
+  - path: /metrics
+    port: http-metrics
+  namespaceSelector:
+    matchNames:
+    - kafka
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: kafka
+      app.kubernetes.io/name: kafka
