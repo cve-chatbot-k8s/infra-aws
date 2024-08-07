@@ -494,7 +494,7 @@ resource "helm_release" "istio_ingressgateway" {
   chart      = "gateway"
   namespace  = "istio-system"
   values = [
-    file("./eks/examples/custom-istio-profile.yaml"), file("./eks/examples/istio-ingressgateway-values.yaml")
+    file("./eks/examples/istio-ingressgateway-values.yaml")
   ]
 
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istiod]
@@ -509,19 +509,19 @@ resource "helm_release" "kube_prometheus_stack" {
   depends_on = [module.eks, kubernetes_namespace.monitoring, helm_release.istio_ingressgateway]
 }
 
-resource "null_resource" "install_kafka_monitor" {
-    provisioner "local-exec" {
-        command = "kubectl apply -f ./eks/examples/kafkamonitor.yaml"
-    }
-    depends_on = [module.eks, helm_release.kube_prometheus_stack, helm_release.kafka]
-}
+# resource "null_resource" "install_kafka_monitor" {
+#     provisioner "local-exec" {
+#         command = "kubectl apply -f ./eks/examples/kafkamonitor.yaml"
+#     }
+#     depends_on = [module.eks, helm_release.kube_prometheus_stack, helm_release.kafka]
+# }
 
 resource "helm_release" "cluster_issuer" {
   name       = "cluster-issuer"
   chart      = "eks/addons/cluster-issuer"
   namespace  = "istio-system"
   values     = [file(var.cluster_issuer_values_file_path)]
-  depends_on = [module.eks_blueprints_addons]
+  depends_on = [module.eks_blueprints_addons, helm_release.istio_base]
 }
 
 resource "helm_release" "svc_monitors" {
@@ -529,7 +529,7 @@ resource "helm_release" "svc_monitors" {
   chart      = "eks/addons/svc-monitors"
   namespace  = "monitoring"
   values     = [file(var.svc_monitors_values_file_path)]
-  depends_on = [module.eks_blueprints_addons]
+  depends_on = [module.eks_blueprints_addons, helm_release.istio_base]
 }
 
 output "oidc_provider" {
