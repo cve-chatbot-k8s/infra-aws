@@ -1,0 +1,7 @@
+gatewayProm:
+  ports:
+  - name: metrics
+    port: 15090
+    targetPort: 0
+  type: ClusterIP
+kubernetesClusterDomain: cluster.local

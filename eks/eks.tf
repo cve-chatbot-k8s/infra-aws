@@ -162,16 +162,21 @@ module "eks_blueprints_addons" {
     Environment = "cert-manager"
   }
 
+  cert_manager = {
+    version = "v1.14.3"
+    installCRDs = true
+  }
+
   depends_on = [module.eks]
 }
 
-resource "null_resource" "install_cert_manager_crds" {
-  provisioner "local-exec" {
-    command = "kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.11.0/cert-manager.crds.yaml"
-  }
-
-  depends_on = [module.eks, module.eks_blueprints_addons]
-}
+# resource "null_resource" "install_cert_manager_crds" {
+#   provisioner "local-exec" {
+#     command = "kubectl apply -f ./eks/examples/cert-manager-crd.yaml"
+#   }
+#
+#   depends_on = [module.eks]
+# }
 
 provider "kubernetes" {
   host                   = module.eks.cluster_endpoint
@@ -489,7 +494,7 @@ resource "helm_release" "istio_ingressgateway" {
   chart      = "gateway"
   namespace  = "istio-system"
   values = [
-    file("./eks/examples/custom-istio-profile.yaml")
+    file("./eks/examples/custom-istio-profile.yaml"), file("./eks/examples/istio-ingressgateway-values.yaml")
   ]
 
   depends_on = [module.eks, kubernetes_namespace.istio-system, helm_release.istiod]
@@ -509,6 +514,22 @@ resource "null_resource" "install_kafka_monitor" {
         command = "kubectl apply -f ./eks/examples/kafkamonitor.yaml"
     }
     depends_on = [module.eks, helm_release.kube_prometheus_stack, helm_release.kafka]
+}
+
+resource "helm_release" "cluster_issuer" {
+  name       = "cluster-issuer"
+  chart      = "eks/addons/cluster-issuer"
+  namespace  = "istio-system"
+  values     = [file(var.cluster_issuer_values_file_path)]
+  depends_on = [module.eks_blueprints_addons]
+}
+
+resource "helm_release" "svc_monitors" {
+  name       = "svc-monitors"
+  chart      = "eks/addons/svc-monitors"
+  namespace  = "monitoring"
+  values     = [file(var.svc_monitors_values_file_path)]
+  depends_on = [module.eks_blueprints_addons]
 }
 
 output "oidc_provider" {

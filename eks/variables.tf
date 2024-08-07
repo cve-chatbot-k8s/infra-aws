@@ -233,3 +233,27 @@ variable "kafka_default_requests" {
 }
 
 variable "fluentbit_values_file" {}
+
+variable "cluster_issuer_chart_path" {
+  description = "Path to the Helm chart"
+  type        = string
+  default     = "./addons/cluster-issuer/chart.yaml"
+}
+
+variable "cluster_issuer_values_file_path" {
+  description = "Path to the values.override.yaml file"
+  default     = "./eks/addons/cluster-issuer/values.yaml"
+  type        = string
+}
+
+variable "svc_monitors_chart_path" {
+  description = "Path to the Helm chart"
+  type        = string
+  default     = "./addons/svc-monitors/chart.yaml"
+}
+
+variable "svc_monitors_values_file_path" {
+  description = "Path to the values.override.yaml file"
+  default     = "./eks/addons/svc-monitors/values.yaml"
+  type        = string
+}
