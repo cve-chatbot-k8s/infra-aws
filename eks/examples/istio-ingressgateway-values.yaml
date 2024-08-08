@@ -21,8 +21,7 @@ defaults:
     # If set, a service account will be created. Otherwise, the default is used
     create: true
     # Annotations to add to the service account
-    annotations:
-      external-dns.alpha.kubernetes.io/hostname: "grafana.missionk8s.xyz"
+    annotations: {}
     # The name of the service account to use.
     # If not set, the release name is used
     name: ""
@@ -89,7 +88,10 @@ defaults:
   labels: {}
 
   # Annotations to apply to all resources
-  annotations: {}
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: grafana.missionk8s.xyz
 
   nodeSelector: {}
 
