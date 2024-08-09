@@ -532,7 +532,7 @@ resource "helm_release" "metrics_server" {
   chart      = "metrics-server"
   namespace  = "monitoring"
 
-  depends_on = [module.eks, helm_release.kube_prometheus_stack, helm_release.kafka]
+  depends_on = [module.eks, helm_release.kube_prometheus_stack, helm_release.kafka, helm_release.svc_monitors]
 }
 
 resource "helm_release" "cluster_issuer" {
