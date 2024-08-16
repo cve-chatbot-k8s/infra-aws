@@ -64,12 +64,12 @@ variable "capacity_type" {
 variable "instance_types" {
   description = "The instance types to be used for the EKS nodes"
   type        = list(string)
-  default     = ["c3.large"]
+  default     = ["c3.xlarge"]
 }
 
 variable "desired_size" {
   description = "The desired number of worker nodes"
-  default     = 3
+  default     = 4
 }
 
 variable "min_size" {
@@ -79,7 +79,7 @@ variable "min_size" {
 
 variable "max_size" {
   description = "The maximum number of worker nodes"
-  default     = 7
+  default     = 9
 }
 
 variable "max_unavailable" {

@@ -91,7 +91,7 @@ defaults:
   annotations:
     kubernetes.io/ingress.class: alb
     alb.ingress.kubernetes.io/scheme: internet-facing
-    external-dns.alpha.kubernetes.io/hostname: grafana.missionk8s.xyz
+    external-dns.alpha.kubernetes.io/hostname: grafana.missionk8s.xyz, chatbot.missionk8s.xyz
 
   nodeSelector: {}
 
