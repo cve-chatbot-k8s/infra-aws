@@ -12,21 +12,36 @@ spec:
   selector:
     istio: ingressgateway
   servers:
-  - hosts:
-    - '*'
-    port:
-      name: http
-      number: 80
-      protocol: HTTP
-  - hosts:
-    - grafana.missionk8s.xyz
-    port:
-      name: https
-      number: 443
-      protocol: HTTPS
-    tls:
-      credentialName: grafana-tls
-      mode: SIMPLE
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - grafana.missionk8s.xyz
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: grafana-tls
+      hosts:
+        - grafana.missionk8s.xyz
+    - port:
+        number: 80
+        name: http-chatbot
+        protocol: HTTP
+      hosts:
+        - chatbot.missionk8s.xyz
+    - port:
+        number: 443
+        name: https-chatbot
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: chatbot-tls
+      hosts:
+        - chatbot.missionk8s.xyz
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -47,13 +62,18 @@ spec:
           number: 80
 ---
 apiVersion: networking.istio.io/v1alpha3
-kind: DestinationRule
+kind: VirtualService
 metadata:
-  name: {{ include "cluster-issuer.fullname" . }}-grafana
-  labels:
-  {{- include "cluster-issuer.labels" . | nindent 4 }}
+  name: chatbot-vs
+  namespace: istio-system
 spec:
-  host: production-grafana.monitoring.svc.cluster.local
-  trafficPolicy:
-    tls:
-      mode: DISABLE
+  hosts:
+    - chatbot.missionk8s.xyz
+  gateways:
+    - grafana-gateway
+  http:
+    - route:
+        - destination:
+            host: cve-search-engine-service.vector.svc.cluster.local
+            port:
+              number: 80

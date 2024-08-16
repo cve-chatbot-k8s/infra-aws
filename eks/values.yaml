@@ -568,8 +568,8 @@ controller:
   ##
   resources:
     limits:
-      cpu: "500m"
-      memory: "900Mi"
+      cpu: "700m"
+      memory: "1000Mi"
     requests:
       cpu: "150m"
       memory: "256Mi"
@@ -960,8 +960,8 @@ broker:
   ##
   resources:
     limits:
-      cpu: "700m"
-      memory: "900Mi"
+      cpu: "800m"
+      memory: "1000Mi"
     requests:
       cpu: "150m"
       memory: "256Mi"

@@ -280,6 +280,18 @@ resource "kubernetes_namespace" "istio-system" {
   depends_on = [module.eks]
 }
 
+# resource "kubernetes_namespace" "vector" {
+#   metadata {
+#     name = "vector"
+#     labels = {
+#       "istio-injection" = "enabled"
+#       "monitoring"      = "prometheus"
+#       "name"            = "vector"
+#     }
+#   }
+#   depends_on = [module.eks]
+# }
+
 resource "kubernetes_namespace" "monitoring" {
   metadata {
     name = "monitoring"

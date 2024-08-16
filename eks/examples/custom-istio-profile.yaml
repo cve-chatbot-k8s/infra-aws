@@ -23,6 +23,7 @@ meshConfig:
         service: opentelemetry-collector.observability.svc.cluster.local
 
 global:
+  logAsJson: true
   proxy:
     resources:
       requests:

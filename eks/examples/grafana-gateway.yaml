@@ -3,6 +3,10 @@ kind: Gateway
 metadata:
   name: grafana-gateway
   namespace: istio-system
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    external-dns.alpha.kubernetes.io/hostname: grafana.missionk8s.xyz,chatbot.missionk8s.xyz
 spec:
   selector:
     istio: ingressgateway
@@ -12,7 +16,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - "*"
+        - grafana.missionk8s.xyz
     - port:
         number: 443
         name: https
@@ -22,6 +26,21 @@ spec:
         credentialName: grafana-tls
       hosts:
         - grafana.missionk8s.xyz
+    - port:
+        number: 80
+        name: http-chatbot
+        protocol: HTTP
+      hosts:
+        - chatbot.missionk8s.xyz
+    - port:
+        number: 443
+        name: https-chatbot
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        credentialName: chatbot-tls
+      hosts:
+        - chatbot.missionk8s.xyz
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
@@ -53,27 +72,27 @@ spec:
 
 ---
 
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: example-ingress
-  annotations:
-    external-dns.alpha.kubernetes.io/hostname: "example.com,www.example.com"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-spec:
-  rules:
-    - host: example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: example-service
-                port:
-                  number: 80
-  tls:
-    - hosts:
-        - example.com
-        - www.example.com
-      secretName: example-com-tls
+#apiVersion: networking.k8s.io/v1
+#kind: Ingress
+#metadata:
+#  name: example-ingress
+#  annotations:
+#    external-dns.alpha.kubernetes.io/hostname: "example.com,www.example.com"
+#    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#spec:
+#  rules:
+#    - host: example.com
+#      http:
+#        paths:
+#          - path: /
+#            pathType: Prefix
+#            backend:
+#              service:
+#                name: example-service
+#                port:
+#                  number: 80
+#  tls:
+#    - hosts:
+#        - example.com
+#        - www.example.com
+#      secretName: example-com-tls
