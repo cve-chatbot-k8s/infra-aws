@@ -17,7 +17,7 @@ spec:
         name: http
         protocol: HTTP
       hosts:
-        - grafana.missionk8s.xyz
+        - "*"
     - port:
         number: 443
         name: https
@@ -72,8 +72,13 @@ spec:
   gateways:
     - grafana-gateway
   http:
+    - match:
+        - port: 80
+      redirect:
+        uri: https://chatbot.missionk8s.xyz
+        port: 443
     - route:
         - destination:
             host: cve-search-engine-service.vector.svc.cluster.local
             port:
-              number: 80
+              number: 8501
